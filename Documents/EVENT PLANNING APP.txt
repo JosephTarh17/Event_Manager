@@ -1,0 +1,113 @@
+EVENT PLANNING APP
+3-Day Scope & Evaluation
+A fixed baseline for a small, learning-focused MVP
+SCOPE FREEZE
+This document defines the agreed three-day target. Do not add features or expand requirements during this time. If an item is not listed as an expected deliverable, it is outside this baseline.
+1. Project baseline
+The target is a small, functional event-planning MVP. The three-day version prioritizes a sound data model, a working backend for event CRUD, and a basic frontend connected to the backend. It is a foundation to continue building—not a production-ready platform.
+2. Ten-day MVP expectations (reference scope)
+If the project had ten development days, the expected baseline would be:
+•	Users can register and log in.
+•	Users can create events.
+•	Users can view a list of available events.
+•	Users can view individual event details.
+•	Event owners can edit and delete their events.
+•	Attendees can register for an event.
+•	Users can view the events they have registered for.
+•	Organizers can manage attendee registrations.
+Technical expectations:
+•	MongoDB database with an intentional collection/document design.
+•	Functional backend API.
+•	Frontend connected to the backend.
+•	Basic authentication and authorization.
+•	Input validation and error handling.
+•	Basic responsive interface.
+•	Core workflows tested.
+3. Fixed three-day delivery scope
+Day 1 — Modelling and database
+•	Transfer the existing paper ERD into StarUML.
+•	Review entities, attributes, relationships and cardinalities.
+•	Translate the model into a MongoDB collection/document design.
+•	Decide where to embed documents and where to use references.
+•	Set up MongoDB and create the required collections.
+•	Insert representative sample documents.
+Expected result: A documented, working database foundation whose structure you can explain.
+Day 2 — Backend
+•	Choose and initialize the backend framework/project.
+•	Establish and verify the MongoDB connection.
+•	Implement event create, read, update and delete operations.
+•	Add basic input validation and sensible error responses.
+•	Test the event API independently of the frontend.
+Expected result: A functional backend API for the core event CRUD workflow.
+Day 3 — Frontend and integration
+•	Create a basic dashboard or landing page.
+•	Build an event listing view and event details view.
+•	Build a form to create an event.
+•	Connect the frontend to the backend API.
+•	Verify that creating and retrieving events works end to end.
+Expected result: A basic frontend that communicates with the backend and database.
+4. Explicitly out of scope for the three-day baseline
+Do not add these during the three-day scope, even if they seem attractive or easy to start:
+•	Authentication and user account workflows.
+•	Attendee registration and organizer attendee management.
+•	Payments, ticket sales or refunds.
+•	Email, SMS or push notifications.
+•	Real-time updates or chat.
+•	Advanced analytics, reporting or dashboards.
+•	Complex scheduling, recurring events or calendar synchronization.
+•	Production hardening, advanced deployment automation or scaling work.
+These items may be considered after the three-day baseline has been completed and evaluated. Do not quietly include them by expanding the current requirements.
+5. Evaluation criteria
+Evaluate the result against the following standards. The goal is not just to make the app run; you should be able to explain the design and demonstrate the core flow.
+Area	Expected standard
+Modelling	Entities, attributes and relationships are understandable and consistent.
+Database	MongoDB documents and collections are intentional; embedding/referencing choices can be explained.
+Backend	Event CRUD operations work and return appropriate responses.
+Frontend	The core interface is usable and supports event creation and viewing.
+Integration	Data travels correctly from the frontend through the backend to MongoDB and back.
+Testing	Core workflows are verified, including at least one invalid-input case.
+Understanding	You can explain the main design decisions and trace a request through the system.
+6. Definition of done
+[x]  The StarUML model is saved and includes the ERD entities, relationships,
+     cardinalities, and the approved Event status field.
+[x]  MongoDB is running; the events collection contains representative sample
+     event documents.
+[x]  The backend can create, retrieve, update and delete events.
+[x]  The frontend can create events, list API events, view event details, edit,
+     and delete events.
+[x]  Frontend-to-MongoDB workflows were tested, including refresh persistence.
+[x]  Known limitations and unfinished items are documented in MongoDB Design.txt
+     and the Frontend learning log.
+[ ]  Personal understanding check: explain the request path below in your own
+     words; see the End-of-project review.
+7. Working rules
+1.	Do not expand the scope during the three-day period.
+2.	Do not add a feature simply because there is spare time; first verify the baseline and test it.
+3.	Build in small steps and test each layer before integrating it.
+4.	Keep notes of decisions, errors, fixes and concepts learned.
+5.	If something takes longer than expected, reduce polish—not the core learning process or the health/recovery time available.
+6.	A smaller working foundation is acceptable; pretending unfinished work is complete is not.
+8. End-of-project review
+What works end to end?
+The frontend loads events with GET, creates with POST, updates with PUT, and
+deletes with DELETE. Express routes validate and call the Mongoose Event
+model, MongoDB stores the documents, and the frontend displays API responses.
+
+What is incomplete or unreliable?
+Only Event has a database model and API. Client, Guest, Venue, Vendor, and
+Staff are in the StarUML design but are not implemented as collections or
+workflows. Authentication and attendee registration are outside this scope.
+
+What modelling or implementation decision would I change, and why?
+Keep Event as the implemented root document. Reference reusable related
+entities and embed only relationship-specific booking details when those
+workflows are added; see MongoDB Design.txt.
+
+Can I explain how a frontend request reaches the backend and MongoDB?
+Frontend fetch -> Express route -> Mongoose Event model -> MongoDB events
+collection -> JSON response -> React state and event list. Practice describing
+each step and the HTTP method used for create, read, update, and delete.
+
+What did I learn that I can apply to the next project?
+How to model a document, validate it with Mongoose, expose CRUD routes, connect
+a React form and list to an API, handle loading/errors, and verify persistence.

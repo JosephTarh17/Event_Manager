@@ -1,0 +1,428 @@
+EVENT PLANNING APP - CONCEPT EXPLAINER
+
+Read this at your own pace. It explains the ideas behind the project in plain
+language and connects them to the code you built. You do not need to memorize
+everything at once. Start with one section, then trace one example in the app.
+
+The learning log records what we did. This explainer focuses on what the ideas
+mean and how the pieces fit together.
+
+============================================================================
+1. The whole app in one picture
+============================================================================
+
+The app has three main parts:
+
+1. React in the browser displays the page and responds to clicks and typing.
+2. Express is the backend web server. It receives API requests and chooses
+   which function should handle each request.
+3. MongoDB stores event documents. Mongoose helps the backend work with those
+   documents and validate their shape.
+
+The normal data path is:
+
+Browser (React) -> HTTP request -> Express route -> Mongoose model -> MongoDB
+Browser (React) <- JSON response <- Express route <- Mongoose <- MongoDB
+
+For example, when the Events page loads:
+- React asks for GET http://localhost:5000/api/events.
+- Express matches that method and URL to the events list route.
+- The route asks the Event model to find the documents in MongoDB.
+- Express sends the results back as JSON.
+- React stores the results in state and draws one card for each event.
+
+============================================================================
+2. What "routing" means
+============================================================================
+
+Routing means choosing what code should handle a request or navigation.
+The word is used in two related but different ways in this project.
+
+A. Backend/API routing
+
+An API route is a method-and-URL rule on the Express server. The method says
+what kind of action is requested; the URL says which resource is involved.
+
+The server mounts the events router at /api/events. The router then adds its
+own small paths:
+
+GET    /api/events       Get the event list
+POST   /api/events       Create an event
+GET    /api/events/:id   Get one event by its ID
+PUT    /api/events/:id   Replace/update an event
+DELETE /api/events/:id   Delete an event
+
+The colon in :id means "a value goes here." For example,
+/api/events/65a1.../ is a request for the event with that ID. Express makes
+the value available to the route as req.params.id.
+
+The server setup uses:
+app.use('/api/events', eventsRouter)
+
+Inside routes/events.js, router.get('/') handles the mounted prefix itself.
+Together, the prefix and router path make GET /api/events. This is why the
+route can look short in the router file but have a longer URL in the browser.
+
+There are also two simple server routes:
+- GET /api/health reports whether the API is reachable.
+- GET / returns a short description of the API and its main endpoints.
+
+B. Frontend view switching
+
+The Events and Calendar buttons do not call Express. They change React's
+activeView state. App.jsx uses that value to display either the event list or
+the calendar while staying on the same browser page.
+
+This project does not use a page-routing library such as React Router. In
+other words, clicking Calendar changes the visible view, but does not navigate
+to a separate /calendar URL. Both views use the same event data already loaded
+into React.
+
+The event View button also does not call a backend route. It selects an event
+in React state and opens its details dialog. The API does have a GET
+/api/events/:id route, but the current dialog uses the event already present
+in the list.
+
+Keep the distinction in mind:
+- Express routes direct HTTP requests to backend functions.
+- activeView and selectedEvent control what React displays on the page.
+
+============================================================================
+3. HTTP methods and CRUD
+============================================================================
+
+CRUD is short for Create, Read, Update, and Delete. HTTP methods commonly
+express these actions:
+
+POST   Create a new event
+GET    Read one or more events
+PUT    Update an existing event
+DELETE Remove an event
+
+An HTTP request contains a method, a URL, and sometimes a body. The body is
+data sent with the request. When React creates or updates an event, it sends
+the form values as JSON in the request body.
+
+The server responds with a status code and often a JSON body:
+- 200 means a read or update succeeded.
+- 201 means a new document was created.
+- 204 means deletion succeeded and there is no response body to read.
+- 400 means the submitted data or ID is invalid.
+- 404 means the requested event does not exist.
+- 500 means an unexpected server problem occurred.
+
+The frontend checks response.ok before treating a request as successful.
+This matters because fetch can receive an HTTP error response without
+rejecting the network request itself.
+
+============================================================================
+4. React components and JSX
+============================================================================
+
+A React component is a JavaScript function that describes part of the screen.
+App is the main component. EventCard is a smaller component that displays one
+event. EventCalendar displays the monthly calendar.
+
+JSX is the HTML-like syntax inside JavaScript:
+
+<h1>Events</h1>
+
+It lets the component describe the page in a readable way. JavaScript
+expressions can be inserted inside braces, for example {event.title}.
+
+Reusable components keep the page organized. EventCard can be used repeatedly
+with different event data instead of copying the same markup for every event.
+
+============================================================================
+5. Props: passing information to a component
+============================================================================
+
+Props are values a parent component passes to a child component.
+
+App owns the events array, then passes fields and action functions to each
+EventCard. For example, an event card receives its title and an onDelete
+function. When the user clicks Delete, the child calls that function and
+passes the event ID back to App.
+
+This keeps responsibilities clear:
+- App owns and changes the full events list.
+- EventCard displays one event and reports which action the user chose.
+
+The View and Edit buttons work through callback props in the same way. The
+child does not need to know how the dialog or form works; it just calls the
+function supplied by App.
+
+============================================================================
+6. State: information React remembers
+============================================================================
+
+State is information that can change while the page is open. When state
+changes, React renders the affected UI again.
+
+App tracks several kinds of state:
+- events: the event documents shown in the page
+- isLoading: whether the first event request is still in progress
+- error: an error message to show the user
+- theme: light or dark
+- query: the text in the search box
+- activeView: whether Events or Calendar is displayed
+- isFormOpen: whether the event form is visible
+- editingEventId: which event is being edited, or null when creating
+- selectedEvent: which event's detail dialog is open, or null if none
+- draftEvent: the values currently typed into the form
+
+For example, clicking Calendar changes activeView. React sees the change and
+shows the calendar instead of the list. It does not need a full page reload.
+
+When updating an array in React, create a new array rather than changing the
+existing array in place. map() is used to replace an edited event, and filter()
+is used to remove a deleted event.
+
+============================================================================
+7. Controlled forms
+============================================================================
+
+The event form is controlled because React state holds the current value of
+each input. Each input gets its value from draftEvent, and its onChange handler
+updates that value as the user types.
+
+The flow is:
+Typing -> input onChange -> setDraftEvent -> React renders the new value.
+
+When the form is submitted, event.preventDefault() stops the browser's normal
+form submission, which would otherwise reload or navigate away from the page.
+React can then send the form to the API using fetch.
+
+The budget input is a subtle example: browser number inputs still provide
+their value as text. The save handler converts it with Number(...) before
+sending it to the API.
+
+The date input expects a value like YYYY-MM-DD. MongoDB sends a date that may
+include a time and timezone, so the edit form takes the first ten characters
+to fill the date input correctly.
+
+The form is reused for creating and editing:
+- If editingEventId is null, submit uses POST /api/events.
+- If editingEventId has an ID, submit uses PUT /api/events/:id.
+
+This avoids building two nearly identical forms.
+
+============================================================================
+8. useEffect: doing something after rendering
+============================================================================
+
+useEffect lets a component synchronize with something outside React after the
+component appears or relevant state changes.
+
+In App:
+- One effect requests the event list when the app first loads.
+- Another effect applies the selected theme to the document and saves it in
+  localStorage whenever theme changes.
+- Another effect listens for the Escape key while the event detail dialog is
+  open, and removes that listener when the dialog closes.
+
+The empty dependency list on the initial loading effect means it should run
+when the component first mounts, not after every state update.
+
+============================================================================
+9. fetch: asking the backend for data
+============================================================================
+
+fetch is a browser function for making HTTP requests.
+
+To load events, React calls fetch(API_URL). The response contains a status and
+body. response.json() reads a JSON body and turns it into JavaScript values.
+
+To create or update an event, fetch also includes:
+- method: POST or PUT
+- Content-Type: application/json
+- body: JSON.stringify(eventData)
+
+JSON is a text format for exchanging structured data. JSON.stringify converts
+a JavaScript object into JSON text so it can be sent in an HTTP body.
+response.json() converts the server's JSON text back into JavaScript data.
+
+Loading and error state make the request visible to the user:
+- While the initial GET is running, the list shows Loading events...
+- If a request fails, error is shown near the page content.
+- On success, the response data is applied to React state.
+
+============================================================================
+10. Express middleware and API routes
+============================================================================
+
+Middleware is code that runs between receiving a request and running a route.
+It can prepare the request or handle common behavior.
+
+The server uses:
+- cors(...) to allow the Vite frontend at localhost:5173 to call the API at
+  localhost:5000. These are different origins because their ports differ.
+- express.json() to parse JSON request bodies so a route can read req.body.
+- app.use('/api/events', eventsRouter) to send event API requests to the
+  events router.
+
+The routes in routes/events.js call the Event model. They catch database
+errors and pass them to the server's error-handling middleware. That middleware
+turns validation errors into HTTP 400 responses and unexpected errors into
+HTTP 500 responses.
+
+============================================================================
+11. MongoDB, documents, Mongoose, schema, and model
+============================================================================
+
+MongoDB is the database. It stores records as documents, which look similar
+to JavaScript objects. Related documents of the same kind are stored in a
+collection.
+
+The Event Mongoose schema describes valid event fields:
+- title: required text
+- description: optional text, empty by default
+- date: required date
+- topic: required text
+- budget: required number that cannot be below zero
+- status: required text, either Planning or Confirmed, defaulting to Planning
+
+The schema also enables timestamps, so Mongoose maintains createdAt and
+updatedAt.
+
+A model is created from a schema. The Event model is how backend code creates,
+finds, updates, and deletes event documents. By convention, Mongoose maps the
+model named Event to the MongoDB collection named events.
+
+MongoDB gives each document an _id. The frontend uses _id as the stable key
+when drawing event cards and as the identifier in update and delete URLs.
+This is why a saved API response is used in the UI: it contains the real
+database ID.
+
+Only Event is implemented as a database model in this small project. The
+StarUML model also includes Client, Guest, Venue, Vendor, and Staff. Their
+future MongoDB mapping and relationships are described in MongoDB Design.txt;
+their database/API workflows are not currently implemented.
+
+============================================================================
+12. Errors and validation
+============================================================================
+
+There are two layers of validation:
+
+1. The browser form has required fields and a non-negative number input. This
+   helps a person avoid common mistakes before submitting.
+2. The Mongoose schema validates data on the server. This is essential because
+   requests can come from somewhere other than this form.
+
+For example, sending status "NotAValidStatus" to POST /api/events gets HTTP
+400. The server rejects the value using the status enum; it does not save that
+event.
+
+The frontend also checks response.ok. If an API request fails, it displays an
+error instead of pretending the action succeeded.
+
+============================================================================
+13. Search, list rendering, and stable keys
+============================================================================
+
+Array.map() converts every event object into an EventCard component. React
+expects a key on each repeated item so it can tell which card is which if the
+list changes. MongoDB's _id is a good stable key.
+
+Search uses Array.filter() to produce the events whose title, topic, status,
+or description includes the search text. The stored events array is not
+changed; filteredEvents is just the subset currently displayed.
+
+When a new event is saved, the query is cleared so a previous search does not
+hide the newly created event.
+
+============================================================================
+14. Dates, formatting, and the calendar
+============================================================================
+
+The app stores dates as real dates in MongoDB. The date input uses the simple
+YYYY-MM-DD form, while the API may return a longer ISO date string.
+
+formatEventDate takes the year, month, and day from the first ten characters
+and displays a friendly date using the browser's locale. The raw date is kept
+in the time element's dateTime attribute for machine-readable meaning.
+
+The calendar is another way to view the same events array; it does not make a
+separate database request. It:
+- keeps the month currently being displayed in React state
+- calculates the weekday of the month's first day and the number of days
+- creates blank cells before day 1 and then one cell per day
+- compares each event date to the date key for each calendar day
+- shows matching event titles in that day
+
+Previous and Next change the displayed month. Today returns to the current
+month. Clicking a calendar event opens its detail dialog.
+
+============================================================================
+15. Light mode, dark mode, and localStorage
+============================================================================
+
+The colors are defined as CSS variables in src/index.css. For example,
+components use variables such as --bg, --surface, --text, and --border instead
+of each hard-coding its own colors.
+
+The root HTML element has a data-theme value. In light mode the normal root
+variables apply. In dark mode the CSS rule for data-theme="dark" replaces
+those variables with dark colors.
+
+React's theme state selects the value. An effect writes it to the root element
+and localStorage. localStorage is small browser storage that survives a page
+refresh. When the app starts, it reads the saved value so the user's theme is
+remembered.
+
+============================================================================
+16. CSS and responsive layout
+============================================================================
+
+CSS controls appearance and layout; it does not create or save event data.
+App.css styles the app layout and components. index.css provides shared theme
+variables and global rules.
+
+CSS Grid arranges the event form, event rows, and calendar days into columns.
+Flexbox arranges items in a row or column, such as buttons in the sidebar.
+
+Media queries apply different layout rules at smaller screen widths. This is
+why the form and event list change shape on narrow screens.
+
+============================================================================
+17. Running and checking the project
+============================================================================
+
+There are two development servers:
+- Backend: from Backend, run npm run dev. It connects to MongoDB, then listens
+  on localhost:5000. Its MONGODB_URI comes from Backend/.env; keep that file
+  private and never paste its contents into shared notes.
+- Frontend: from Frontend, run npm run dev. Vite prints a local browser URL,
+  normally localhost:5173.
+
+The frontend needs the backend running to load and save database events. The
+database service must also be running for the backend to connect.
+
+Useful checks from Frontend:
+- npm run lint checks for common code mistakes.
+- npm run build checks that Vite can prepare a production bundle.
+
+A successful build proves the code can be compiled; it does not by itself
+prove that a browser interaction or database request works. For that, use the
+app and test the actual workflow.
+
+============================================================================
+18. A small practice checklist
+============================================================================
+
+Try explaining these out loud, using the app:
+
+1. What happens after the Events page asks for its event list?
+2. What is the difference between GET /api/events and clicking Calendar?
+3. Why does an event need an _id?
+4. What is the difference between a schema and a model?
+5. Why does the form call preventDefault()?
+6. Why does the app check response.ok?
+7. What changes in React when the user switches to dark mode?
+8. Why does the calendar not need its own copy of the events?
+9. Where would you look if an invalid status was saved unexpectedly?
+
+It is okay if some answers are not clear yet. Re-read only that section and
+trace the related interaction in App.jsx or the backend files. Understanding
+comes from revisiting the same flow calmly, not from memorizing every term.

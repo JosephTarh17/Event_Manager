@@ -1,0 +1,50 @@
+EVENT PLANNING APP - MONGODB DOCUMENT DESIGN
+
+Purpose
+This note explains how the StarUML model maps to MongoDB and distinguishes
+the event CRUD foundation built for the three-day scope from entities that
+remain conceptual/future work.
+
+Implemented collection: events
+The Mongoose Event model creates the events collection when the first event is
+saved. Each document uses MongoDB's generated _id as its identifier and stores:
+- title: required string
+- description: optional string, default empty
+- date: required date
+- topic: required string
+- budget: required number, minimum 0
+- status: required string, Planning or Confirmed; defaults to Planning
+- createdAt and updatedAt: added by Mongoose timestamps
+
+The database has representative event documents. The frontend reads the
+collection through GET /api/events and uses POST, PUT, and DELETE routes for
+the event CRUD workflow.
+
+Mapping the remaining ERD relationships
+- Client to Event is one-to-many: keep clients in a clients collection and
+  store clientId as a reference on each event.
+- Guest and Event are many-to-many: keep guests as reusable guest documents
+  and store guest IDs on an event (or an explicit registration collection
+  when guest registration is implemented).
+- Venue and Event are many-to-many, with time attached to the relationship:
+  keep venues in a venues collection and represent an event's venue/time
+  bookings as small embedded assignment documents containing venueId and time.
+- Vendor and Event are many-to-many: keep vendors in a vendors collection and
+  store vendor references in event assignments. Product and quantity belong
+  with the event's vendor assignment when they describe what that event uses.
+- Staff and Event are many-to-many: keep staff in a staff collection and
+  store staff references on event assignments.
+
+References are preferred for reusable Client, Guest, Venue, Vendor, and Staff
+records, so editing a person's or venue's shared details does not require
+changing every event. Small relationship-specific values such as venue time,
+vendor product/quantity, or staff role/shift can be embedded in the event
+assignment because they describe that event's use of the referenced record.
+
+Current scope boundary
+Only Event is implemented as a Mongoose model and API resource in this
+three-day MVP. The other entities and relationship mappings above document
+the intended database design, but their collections, schemas, API routes,
+authentication, and attendee-registration workflows have not been built.
+This keeps the implementation within the fixed scope while preserving a
+clear path for later work.

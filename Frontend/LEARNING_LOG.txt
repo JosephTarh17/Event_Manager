@@ -1,0 +1,468 @@
+EVENT PLANNING APP - FRONTEND LEARNING LOG
+
+Purpose
+This log records concepts learned, the practical steps used in the editor, and why each concept exists. It will be updated as the frontend and backend are built.
+
+Companion explainer:
+Read EXPLAINER.txt when you want a slower, plain-language explanation of the
+concepts and how a request travels through the frontend, routes, backend, and
+database.
+
+----------------------------------------------------------------------------
+1. React and Vite project setup
+----------------------------------------------------------------------------
+What we did:
+- Created the React frontend with Vite.
+- Installed project dependencies with npm.
+- Started the development server with npm run dev.
+- Used npm run lint to check the code.
+- Used npm run build to create a production build.
+
+What it means:
+- React builds interfaces from reusable JavaScript functions called components.
+- JSX lets JavaScript return markup that looks similar to HTML.
+- Vite provides the development server, fast refresh, build process, and project tooling.
+- npm manages project dependencies and scripts.
+- A linter checks code for mistakes and unused declarations.
+- A production build confirms that Vite can transform and bundle the application.
+
+----------------------------------------------------------------------------
+2. Editing the first JSX
+----------------------------------------------------------------------------
+What we did:
+- Changed the starter heading from "Get started" to "Event Planner".
+- Replaced starter text with "Plan your next memorable event in one place."
+
+What it means:
+JSX elements such as h1 and p describe content on the page. Saving a JSX file while Vite is running refreshes the page through hot module replacement.
+
+----------------------------------------------------------------------------
+3. Removing demo state
+----------------------------------------------------------------------------
+What we did:
+- Removed the Vite counter's useState import and state.
+- Removed the demo counter button.
+- Added an initial "No events yet" empty-state message.
+
+What it means:
+React state stores values that can change over time. useState must be imported and called only inside a React component. Demo code should be removed when it no longer represents application functionality.
+
+----------------------------------------------------------------------------
+4. React components
+----------------------------------------------------------------------------
+What we did:
+- Created an EmptyState component that returns JSX.
+- Rendered it with <EmptyState />.
+- Later replaced and removed that component as the event list became the main page.
+- Created an EventCard component.
+
+What it means:
+A component is a JavaScript function that returns UI. Components divide an interface into smaller, understandable pieces.
+
+Basic structure:
+function ComponentName() {
+  return (
+    <div>UI here</div>
+  )
+}
+
+export default ComponentName
+
+The App component is the top-level component for this page. Other components can be nested inside it.
+
+----------------------------------------------------------------------------
+5. Props
+----------------------------------------------------------------------------
+What we did:
+- Changed EmptyState to accept title and message props.
+- Passed title and message values from the parent component.
+- Changed EventCard to accept title, topic, date, and status props.
+
+What it means:
+Props are data passed from a parent component to a child component. The child receives props as an object or uses destructuring.
+
+Example:
+function EventCard({ title, topic }) {
+  return <h2>{title} - {topic}</h2>
+}
+
+<EventCard title="Team workshop" topic="Workshop" />
+
+Props let the same component display different data.
+
+----------------------------------------------------------------------------
+6. Rendering arrays with map()
+----------------------------------------------------------------------------
+What we did:
+- Stored sample event objects in an events array.
+- Used events.map((event) => <EventCard ... />).
+- Passed event fields to EventCard as props.
+- Added a key using event.id.
+
+What it means:
+map() visits each item in an array and returns a new array. In JSX, it is used to turn data objects into React components.
+
+The key prop is a React identifier for each list item. It should be stable and unique, normally a database ID.
+
+Example:
+events.map((event) => (
+  <EventCard key={event.id} title={event.title} />
+))
+
+----------------------------------------------------------------------------
+7. React state for events
+----------------------------------------------------------------------------
+What we did:
+- Changed the sample events array into state:
+  const [events, setEvents] = useState([...])
+- Added an addEvent function.
+- Called setEvents with a functional updater.
+- Used the spread syntax to keep existing events and create a new array.
+- Connected addEvent to the New event button with onClick.
+
+What it means:
+State stores values that React tracks and rerenders when they change. setEvents updates event state and rerenders the event list.
+
+The functional form reads the latest state:
+setEvents((currentEvents) => [
+  ...currentEvents,
+  newEvent,
+])
+
+The spread syntax copies existing array items into a new array. React state should be updated immutably: create new arrays or objects instead of editing state directly.
+
+----------------------------------------------------------------------------
+8. Controlled search input
+----------------------------------------------------------------------------
+What we did:
+- Added a query state value.
+- Bound the search input value to query.
+- Updated query from the input's onChange event.
+- Filtered events before rendering them.
+
+What it means:
+A controlled input stores its value in React state. When the user types, React updates state and the JSX rerender displays the current value.
+
+Example:
+const [query, setQuery] = useState('')
+
+<input
+  value={query}
+  onChange={(event) => setQuery(event.target.value)}
+/>
+
+----------------------------------------------------------------------------
+9. Product interface structure
+----------------------------------------------------------------------------
+What we did:
+- Replaced the Vite starter layout.
+- Built a compact sidebar, workspace navigation, page header, toolbar, event table, status labels, and footer.
+- Added a search field and search filtering.
+- Added a persisted light/dark theme toggle.
+- Used a responsive sidebar layout for smaller screens.
+
+What it means:
+The interface uses reusable visual regions and consistent hierarchy:
+- Sidebar: primary workspace navigation
+- Header: page title and main action
+- Toolbar: searching and filtering
+- Table: data rows and column labels
+- Footer: summary information
+- Theme variables: reusable colors that remain consistent in light and dark modes
+
+----------------------------------------------------------------------------
+10. CSS custom properties and themes
+----------------------------------------------------------------------------
+What we did:
+- Defined color tokens in src/index.css using :root.
+- Overrode tokens in :root[data-theme="dark"].
+- Stored the selected theme in localStorage.
+- Used useEffect to apply the theme to the document.
+
+What it means:
+CSS custom properties are reusable variables. Components use semantic names such as --text and --border instead of hard-coded colors in every rule.
+
+Light and dark themes change the variables, so existing component CSS can remain consistent.
+
+----------------------------------------------------------------------------
+11. Effects and browser storage
+----------------------------------------------------------------------------
+What we did:
+- Used useEffect to apply the theme to document.documentElement.dataset.theme.
+- Saved the theme in localStorage.
+- Initialized theme state from localStorage.
+
+What it means:
+useEffect runs code after a React render. It is suitable for synchronization with systems outside React, such as the document element or browser storage.
+
+localStorage persists strings in the browser. The application reads it after reload and restores the last selected theme.
+
+----------------------------------------------------------------------------
+12. Validation commands
+----------------------------------------------------------------------------
+What we verified:
+- npm run lint checks the frontend with Oxlint.
+- npm run build verifies that Vite compiles and bundles the application.
+- The state handler and redesigned interface both passed lint and build checks.
+
+----------------------------------------------------------------------------
+Concepts covered later in this log
+----------------------------------------------------------------------------
+- Controlled forms and API-backed create/update requests
+- MongoDB event IDs and delete requests
+- Loading and error states
+- Connecting React, Express, Mongoose, and MongoDB
+- Event details, themes, and the monthly calendar
+
+----------------------------------------------------------------------------
+13. Controlled event form and API-backed submission
+----------------------------------------------------------------------------
+What we did:
+- Added isFormOpen state to control whether the New event form is visible.
+- Added draftEvent state for title, topic, date, and status values.
+- Connected the New event button to setIsFormOpen(true).
+- Added controlled title, topic, and date inputs that update one draft field
+  while preserving the other fields.
+- Added required attributes so the browser checks that the fields are filled.
+- Connected the form's onSubmit event to the API-backed saveEvent handler.
+- Called event.preventDefault() to stop a normal browser form submission/reload.
+- Sent the draft to POST /api/events and appended the saved document returned
+  by MongoDB, including its database-generated _id.
+- Reset the draft values and closed the form after submitting or cancelling.
+
+What it means:
+- Boolean state can determine whether a section of JSX is rendered:
+  {isFormOpen && <form>...</form>}
+- A controlled input gets its current value from React state and updates that
+  state in onChange.
+- A form submit handler receives the submit event. preventDefault() keeps the
+  browser from navigating/reloading so React can handle the submission.
+- Native required validation prevents an incomplete form from submitting.
+- The new event is appended immutably, so React receives a new array reference
+  and rerenders the list.
+- The frontend talks to Express with fetch; Mongoose saves the document to
+  MongoDB, and the API response is used to update React state.
+
+Validation:
+- Oxlint passes.
+- Vite production build passes.
+- The user tested creating an event in the browser: the form submitted
+  successfully, closed, and the new event appeared.
+- The required-field behavior was included in the test checklist.
+
+Next concepts:
+- Read the MongoDB document ID when connecting list actions to API routes.
+- Check API responses before treating a request as successful.
+
+----------------------------------------------------------------------------
+14. Callback props and deleting list items
+----------------------------------------------------------------------------
+What we did:
+- Passed each event's id and the deleteEvent function from App to EventCard.
+- Attached an onClick handler to the delete button in EventCard.
+- Called onDelete(id) from the child component when the user clicked delete.
+- Implemented deleteEvent inside App, where it can access setEvents.
+- Sent DELETE /api/events/:id and only removed the row from React state after
+  the API confirmed deletion.
+- Used Array.filter() to produce a new events array without the selected ID.
+- Verified deleting an event in the browser.
+- Refreshed the page to confirm the deleted event stayed deleted.
+- Confirmed Oxlint and the Vite production build pass.
+
+What it means:
+A callback prop is a function passed from a parent component to a child.
+The child can call it to tell the parent that an action occurred. Here,
+EventCard does not own the events array; it asks App to delete an event.
+
+The state owner keeps state updates in one place:
+App -> EventCard(onDelete) -> App.deleteEvent(id) -> API DELETE -> MongoDB
+-> setEvents(newArray)
+
+Array.filter() returns a new array containing only items that pass a test.
+Using filter to remove an item is an immutable update: the original state
+array is not edited in place.
+
+JavaScript scope lesson:
+deleteEvent must be declared inside App to use App's setEvents variable.
+Functions outside App cannot access variables created inside App. The build
+and linter may not catch every scope/runtime issue, so test interactions too.
+
+----------------------------------------------------------------------------
+15. Consistent date data and display formatting
+----------------------------------------------------------------------------
+What we did:
+- Kept event dates in YYYY-MM-DD format, matching the native date input.
+- Passed the raw date string to EventCard.
+- Used formatEventDate() in the card to create a human-readable date label.
+- Kept the raw value in the <time dateTime="..."> attribute.
+- Verified lint and production build after the fix.
+
+What it means:
+Store and pass a consistent machine-friendly date value through the app.
+Format it only where it is displayed to a person. The time element's dateTime
+attribute exposes the machine-readable value, while its text is localized for
+the current browser locale.
+
+----------------------------------------------------------------------------
+16. Express server and health-check route
+----------------------------------------------------------------------------
+What we did:
+- Initialized the Backend npm package and installed Express, Mongoose, CORS,
+  dotenv, and Nodemon.
+- Added npm dev/start scripts for server.js.
+- Created an Express app listening on port 5000.
+- Added GET /api/health returning a small JSON status response.
+- Verified the health endpoint in the browser.
+- Confirmed the local MongoDB Windows service is running and the API health
+  route responds after configuring the server to connect to MongoDB.
+
+What it means:
+Express maps HTTP methods and URL paths to handler functions. A health-check
+route is a simple way to confirm that the API process is reachable before
+adding database behavior. Nodemon restarts the server when source files change.
+
+----------------------------------------------------------------------------
+17. Mongoose Event schema and model
+----------------------------------------------------------------------------
+What we did:
+- Created a Mongoose schema for title, description, date, topic, and budget.
+- Added required, trim, default, and minimum-value rules.
+- Enabled timestamps.
+- Exported a model named Event, which maps by convention to the events
+  collection.
+
+What it means:
+A schema describes the shape and validation of MongoDB documents handled by
+Mongoose. A model is the API used by application code to create, query, update,
+and delete documents. Mongoose uses the model name to derive the collection
+name unless explicitly configured otherwise.
+
+----------------------------------------------------------------------------
+19. Event API CRUD routes and HTTP responses
+----------------------------------------------------------------------------
+What we did:
+- Kept GET /api/events to list documents and POST /api/events to create one.
+- Added GET /api/events/:id, PUT /api/events/:id, and DELETE
+  /api/events/:id.
+- Validated MongoDB IDs before looking up, updating, or deleting a document.
+- Returned 400 for malformed IDs, 404 when no document exists, 201 for
+  creation, 200 for reads/updates, and 204 for successful deletion.
+- Used runValidators on updates so Mongoose schema rules apply.
+- Tested create, read-one, update, delete, and read-after-delete using a
+  temporary test event; the test event was deleted.
+
+What it means:
+CRUD means Create, Read, Update, and Delete. HTTP methods communicate the
+requested action: POST creates, GET reads, PUT updates, and DELETE removes.
+The `:id` route segment is a parameter read from the URL. The route calls the
+Mongoose model, which performs the database operation. The API response status
+distinguishes success, invalid input, and a missing record.
+
+The frontend is connected to these routes: it loads the event list with GET,
+creates with POST, updates with PUT, and deletes with DELETE. The GET response
+uses MongoDB's _id for React keys and item actions.
+
+----------------------------------------------------------------------------
+20. Final event model extension: status and budget
+----------------------------------------------------------------------------
+What we did:
+- Kept budget as a required, non-negative number in the Mongoose model.
+- Added status as a required enum with Planning and Confirmed values and a
+  Planning default.
+- Added budget values to the frontend sample events.
+- Added a required numeric budget input to the event form and convert its
+  string input value to a number when creating a local event.
+- Displayed budget in the event list while retaining the status column.
+- Added the optional description to sample data, the form draft, and the
+  event card; included it in search.
+- Styled the description textarea to match the existing input controls.
+
+What it means:
+Status and description represent different information: status is the
+event's planning state, while description contains details about the event.
+The model's enum limits status to values the application currently supports.
+Native number inputs still produce strings, so the submit handler converts
+the budget to a Number before storing it.
+
+----------------------------------------------------------------------------
+18. Event form styling and responsive layout
+----------------------------------------------------------------------------
+What we did:
+- Styled the event form with the same border, surface, text, focus, and button
+  tokens used by the event workspace.
+- Used a three-column desktop grid for title, topic, and date fields.
+- Changed the form grid to two columns on smaller screens and one column on
+  narrow mobile screens.
+- Added hover and keyboard-focus states to form inputs and action buttons.
+
+What it means:
+CSS Grid lays out controls in consistent columns without changing the form's
+React behavior. Reusing the existing CSS custom properties keeps the form
+consistent in both light and dark themes. Media queries adapt the layout to
+available screen width.
+
+----------------------------------------------------------------------------
+21. Editing events from the frontend
+----------------------------------------------------------------------------
+What we did:
+- Added an Edit action to each event card.
+- Reused the controlled event form for both creating and editing.
+- Filled the form with the selected event's current values, formatting its date
+  for the date input and its budget for the number input.
+- Sent PUT /api/events/:id when editing and POST /api/events when creating.
+- Replaced the updated event in React state using its MongoDB _id.
+- Verified in the browser that changes to title, status, and budget appeared
+  immediately and remained after refreshing.
+- Deleted the temporary test event and confirmed it was absent from the API.
+- Ran npm run lint and npm run build successfully.
+
+What it means:
+Editing uses state to remember which event is being changed. When the form is
+submitted, that ID determines whether the app sends a PUT update or a POST
+create request. The API returns the saved document, and React replaces the
+matching event rather than adding a duplicate. Using the database ID keeps the
+frontend update tied to the correct MongoDB document.
+
+----------------------------------------------------------------------------
+22. Event details view and end-to-end checks
+----------------------------------------------------------------------------
+What we did:
+- Made each event title open a details dialog with its topic, description,
+  status, date, and budget.
+- Added close-button, backdrop-click, and Escape-key ways to dismiss details.
+- Tested an unsupported status through POST /api/events; the API returned
+  HTTP 400 and did not store the invalid document.
+- Confirmed MongoDB is reachable and the events collection contains
+  representative event documents.
+- Completed the frontend workflow checks: create, retrieve after refresh,
+  edit after refresh, and delete after refresh.
+
+What it means:
+The event list is the overview; selecting an event title opens a focused
+details view. API validation remains on the server as the source of truth,
+even when the browser form has its own required-field checks.
+
+Scope limitation:
+The StarUML model includes Client, Guest, Venue, Vendor, and Staff and their
+relationships. This three-day implementation persists Event documents only;
+the additional entities and their relationships are documented as future
+work. Authentication, attendee registration, and payments remain outside
+the agreed three-day scope.
+
+----------------------------------------------------------------------------
+23. Theme toggle, event details action, and monthly calendar
+----------------------------------------------------------------------------
+What we did:
+- Applied the selected theme to the document root and saved it in localStorage
+  so dark mode remains selected after a page refresh.
+- Added a clearly labeled View button to each event row; it opens the same
+  details dialog as selecting the event title.
+- Replaced the placeholder Calendar navigation link with a working monthly
+  calendar populated from the events already loaded from the API.
+- Added Previous, Next, and Today calendar controls. Selecting a calendar
+  event opens its details.
+
+What it means:
+Theme state controls CSS custom properties on the root element. localStorage
+persists that preference in the browser. The calendar is a different view of
+the same event data, so it does not need a separate API or duplicate storage.
